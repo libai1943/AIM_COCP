@@ -1,6 +1,6 @@
-# Autonomous Intersection Management via Computational Optimal Control
+# AIM_COCP — Continuous-Space Intersection Management (IFAC 2020)
 
-**Coordinate vehicle trajectories over continuous intersection space.** This MATLAB/AMPL repository implements the method in **“Autonomous Intersection Management over Continuous Space: A Microscopic and Precise Solution via Computational Optimal Control”**, published in *IFAC-PapersOnLine* in 2020.
+**Coordinate vehicle trajectories over continuous intersection space.** This MATLAB/AMPL repository implements the method in **“Autonomous Intersection Management over Continuous Space: A Microscopic and Precise Solution via Computational Optimal Control”**, by **Bai Li, Youmin Zhang, Ning Jia, and Xiaoyan Peng**, published in *IFAC-PapersOnLine*, **53**(2), **17071–17076**, 2020. [Read the source paper](https://doi.org/10.1016/j.ifacol.2020.12.1611).
 
 The planner first creates ordered, collision-aware initial trajectories in an `(x, y, t)` graph. It then optimizes the vehicles jointly, progressively adding collision-avoidance constraints until the full candidate passes collision checking. The supplied benchmark driver handles **24 vehicles per case** and contains **50 cases**.
 
@@ -19,7 +19,14 @@ flowchart TD
     G -->|Yes| H[Display and throughput evaluation]
 ```
 
-The first stage establishes a useful warm start rather than solving the entire coupled problem immediately. The optimization stage uses the vehicle kinematics, endpoint conditions and selected collision constraints. After each reduced problem, the code checks collisions more broadly and updates the constraints as necessary. This is the original 2020 computational optimal-control implementation; its architecture differs from later social-force-initialized intersection planners.
+The implementation follows the method in Sections 2 and 3 of the source paper:
+
+1. **Continuous-space optimal control (Section 2).** Jointly plan vehicle states and controls subject to kinematics, drivable regions, boundary conditions and inter-vehicle collision avoidance. The objective balances acceleration/steering-rate smoothness with progress along each vehicle's exit direction.
+2. **Collision geometry (Sections 2.2–2.3).** Represent each rectangular vehicle by two covering discs and approximate street-block geometry by inscribed circles. Use the resulting circle-distance and drivable-region constraints in the optimization model.
+3. **Priority-based initialization (Section 3.2).** Rank vehicles by expected intersection-exit time and search a coarse trajectory for each vehicle using **x-y-time A***. Previously planned vehicles are treated as moving obstacles while planning the remaining vehicles.
+4. **Numerical solution (Sections 3.1 and 3.3).** Discretize the optimal-control problem with explicit first-order Runge–Kutta equations and solve the resulting NLP by an interior-point method. Initially omit vehicle-to-vehicle collision constraints, then add them incrementally and check the complete candidate until a feasible cooperative solution is obtained.
+
+The paper presents this as an **offline AIM method**. The repository's MATLAB driver implements the search/optimization sequence through file exchange with AMPL and IPOPT.
 
 ## Run a benchmark
 
@@ -64,11 +71,9 @@ The search horizon is 10 s, with 200 time layers and 1 m spatial grid resolution
 
 `RunMe.m` defines these parameters together with the intersection and search limits. If changing the number of vehicles, update the benchmark boundary data and related indexing consistently; changing `Nv` alone is not sufficient to create a new valid case.
 
-## Publications to cite
+## Source paper and citation
 
-The original code requests acknowledgment of the main paper and the two methodological predecessors below.
-
-**1. Main source paper**
+This repository accompanies the following **IFAC 2020 paper**. Please cite it when using this implementation or its continuous-space AIM method.
 
 > Bai Li, Youmin Zhang, Ning Jia, and Xiaoyan Peng, “Autonomous Intersection Management over Continuous Space: A Microscopic and Precise Solution via Computational Optimal Control,” *IFAC-PapersOnLine*, **53**(2), 17071–17076, 2020. [DOI](https://doi.org/10.1016/j.ifacol.2020.12.1611).
 
@@ -80,36 +85,6 @@ The original code requests acknowledgment of the main paper and the two methodol
   journal = {IFAC-PapersOnLine},
   volume = {53}, number = {2}, pages = {17071--17076}, year = {2020},
   doi = {10.1016/j.ifacol.2020.12.1611}
-}
-```
-
-**2. Cooperative intersection motion planning**
-
-> Bai Li and Youmin Zhang, “Fault-Tolerant Cooperative Motion Planning of Connected and Automated Vehicles at a Signal-Free and Lane-Free Intersection,” *IFAC-PapersOnLine*, **51**(24), 60–67, 2018. [DOI](https://doi.org/10.1016/j.ifacol.2018.09.529).
-
-```bibtex
-@article{Li2018FaultTolerant,
-  author = {Li, Bai and Zhang, Youmin},
-  title = {Fault-Tolerant Cooperative Motion Planning of Connected and
-           Automated Vehicles at a Signal-Free and Lane-Free Intersection},
-  journal = {IFAC-PapersOnLine},
-  volume = {51}, number = {24}, pages = {60--67}, year = {2018},
-  doi = {10.1016/j.ifacol.2018.09.529}
-}
-```
-
-**3. Incrementally constrained optimization**
-
-> Bai Li, Ning Jia, Pu Li, Xudong Ran, and Yan Li, “Incrementally constrained dynamic optimization: A computational framework for lane change motion planning of connected and automated vehicles,” *Journal of Intelligent Transportation Systems*, **23**(6), 557–568, 2019. [DOI](https://doi.org/10.1080/15472450.2018.1562349).
-
-```bibtex
-@article{Li2019IncrementallyConstrained,
-  author = {Li, Bai and Jia, Ning and Li, Pu and Ran, Xudong and Li, Yan},
-  title = {Incrementally constrained dynamic optimization: A computational
-           framework for lane change motion planning of connected and automated vehicles},
-  journal = {Journal of Intelligent Transportation Systems},
-  volume = {23}, number = {6}, pages = {557--568}, year = {2019},
-  doi = {10.1080/15472450.2018.1562349}
 }
 ```
 
