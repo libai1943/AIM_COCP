@@ -1,5 +1,7 @@
 # AIM_COCP — Continuous-Space Intersection Management (IFAC 2020)
 
+[Download ZIP](https://github.com/libai1943/AIM_COCP/archive/refs/heads/master.zip) · [Getting started](#run-a-benchmark) · [Guide](#function-guide) · [Citation](#source-paper-and-citation)
+
 **Coordinate vehicle trajectories over continuous intersection space.** This MATLAB/AMPL repository implements the method in **“Autonomous Intersection Management over Continuous Space: A Microscopic and Precise Solution via Computational Optimal Control”**, by **Bai Li, Youmin Zhang, Ning Jia, and Xiaoyan Peng**, published in *IFAC-PapersOnLine*, **53**(2), **17071–17076**, 2020. [Read the source paper](https://doi.org/10.1016/j.ifacol.2020.12.1611).
 
 The planner first creates ordered, collision-aware initial trajectories in an `(x, y, t)` graph. It then optimizes the vehicles jointly, progressively adding collision-avoidance constraints until the full candidate passes collision checking. The supplied benchmark driver handles **24 vehicles per case** and contains **50 cases**.
@@ -45,6 +47,18 @@ for case_id = 1               % Replace 1 : 50 with your chosen case, 1–50
 
 Keep `Benchmarks/` and the solver/model files in place. Use a writable checkout because the driver writes and reloads optimization inputs, status flags and trajectories. It calls the protected `ProduceVideo.p` display/output helper after a successful solution and evaluates throughput. The driver also includes repeated-failure and elapsed-time stopping conditions; solver termination alone is not the full collision acceptance criterion.
 
+### Read one case before comparing all fifty
+
+The driver prints a success/failure line for each case. For a successful case, `EvaluateThroughput` reports the interval between the first and last sampled occupation of the intersection, in **seconds**. For the same 24-vehicle demand, a smaller interval means the vehicles clear the intersection in a shorter span. Total computation time is printed separately.
+
+| Question | Where to look |
+| --- | --- |
+| Which paths are planned first? | `ranklist` in [RunMe.m](RunMe.m) gives the vehicle order. Each accepted warm start reserves cells for the remaining searches. |
+| Did the joint solution clear the collision check? | Read the case success message. The loop checks the solver flag together with [CheckCollisions.p](CheckCollisions.p) before producing the video. |
+| Which vehicle occupied the intersection at a given sample? | [EvaluateThroughput.m](EvaluateThroughput.m) reshapes `x.txt`, `y.txt` and `theta.txt` into vehicle-by-time arrays and tests the front and rear disc centers. |
+
+The solver exchange files reuse the same names in every case. To inspect one case numerically, run just that index and save its files before starting another.
+
 ## Function guide
 
 | File | Role |
@@ -87,6 +101,8 @@ This repository accompanies the following **IFAC 2020 paper**. Please cite it wh
   doi = {10.1016/j.ifacol.2020.12.1611}
 }
 ```
+
+The source header also credits Bai Li and Youmin Zhang, “Fault-tolerant cooperative motion planning of connected and automated vehicles at a signal-free and lane-free intersection,” *IFAC-PapersOnLine* 51(24), 60–67 (2018), and Bai Li et al., “Incrementally constrained dynamic optimization: A computational framework for lane change motion planning of connected and automated vehicles,” *Journal of Intelligent Transportation Systems* 23(6), 557–568 (2019). See [the original citation notes](RunMe.m).
 
 ## License
 
